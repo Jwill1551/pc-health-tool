@@ -13,13 +13,14 @@ THRESHOLDS = {
 }
 
 ## Notes: 'Grade' or compare the value outputed by the data returend by my system functions with threshold values.
-def grade(value, warning, critical=100):
-    if value >= critical and critical:
+def grade(value, warning, critical=None):
+    if critical is not None and value >= critical:
         return "CRITICAL"
     elif value >= warning:
         return "WARNING"
     else:
         return "OK"
+
 
 # Get hostname, OS, and uptime
 def get_system_info():
@@ -69,24 +70,23 @@ if __name__ == "__main__":
     memory = get_memory_info()
     cpu = get_cpu_info()
     disks = get_disk_info()
+    
+    print(f"Computer: {system['hostname']} ({system['os']})")
 
     ## Note: Passed 'THRESHOLDS' dictionary memory location to variable 'mem_limits'.
     mem_limits = THRESHOLDS["memory"]
     mem_status = grade(memory["percent_used"], mem_limits['warning'], mem_limits['critical'])
-    print(f"{mem_status} Memory: {memory['percent_used']}% used of {memory['total_gb']} GB")
+    print(f"{mem_status} - Memory: {memory['percent_used']}% used of {memory['total_gb']} GB")
 
     disk_limits = THRESHOLDS["disk"]
     for disk in disks:
         disk_status = grade(disk['percent_used'], disk_limits["warning"], disk_limits["critical"])
-        print(f"{disk_status} Disk: {disk['percent_used']}% used of {disk['total_gb']} GB")
+        print(f"{disk_status} - Disk {disk['mount']}: {disk['percent_used']}% used of {disk['total_gb']} GB")
     
     cpu_limits = THRESHOLDS['cpu']
     cpu_status = grade(cpu["percent_used"], cpu_limits['warning'])
-    print(f"{cpu_status} CPU: {cpu['percent_used']}% used of {cpu['cores']} cores")
+    print(f"{cpu_status} - CPU: {cpu['percent_used']}% used of {cpu['cores']} cores")
 
-    print(f"Computer: {system['hostname']} ({system['os']})")
-    print(f"Uptime: {system['uptime_days']} days")
-    print(f"Memory: {memory['percent_used']}% used of {memory['total_gb']} GB")
-    for disk in get_disk_info():
-        print(f"Disk {disk['mount']}: {disk['percent_used']}% used of {disk['total_gb']} GB")
-    print(f"CPU: {cpu['percent_used']}% usage - {cpu['cores']} cores")
+    uptime_limits = THRESHOLDS["uptime"]
+    uptime_status = grade(system["uptime_days"], uptime_limits["warning"], uptime_limits["critical"])
+    print(f"{uptime_status} - Uptime: {system['uptime_days']} days")
